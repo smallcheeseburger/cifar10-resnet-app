@@ -38,30 +38,52 @@ The web app allows users to upload CIFAR-10 images and receive instant classific
 ├── .gitignore           # Files excluded from version control
 └── README.md            # Project documentation
 ```
-
-
-
-
 ## Setup and Usage
-### Local Docker Deployment
-1. Clone the repository:
+### Option 1: Run Pre-built Docker Image (Recommended)
+If you want to directly use the trained model without building or training:
+```bash
+docker pull smallburger/cifar10-app:latest
+docker run -p 8501:8501 smallburger/cifar10-app:latest
+```
+Access the web app in your browser:
+http://localhost:8501
+### Option 2: Build Docker Image Locally (For Developers)
+If you want to modify the source code and rebuild the Docker image:
+```bash
+git clone https://github.com/smallcheeseburger/cifar10-resnet-app.git
+cd cifar10-resnet-app
+docker build -t cifar10-app .
+docker run -p 8501:8501 cifar10-app
+```
+Access the web app in your browser:
+http://localhost:8501
+### Option 3: Run Locally Without Docker (For Training)
+If you want to train the model yourself or run the app using Python directly:
+Clone the repository:
 ```bash
 git clone https://github.com/smallcheeseburger/cifar10-resnet-app.git
 cd cifar10-resnet-app
 ```
-
-2. Build the Docker image:
+Create a virtual environment (optional but recommended):
 ```bash
-docker build -t cifar10-app .
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
-3. Run the Docker container:
+Install the dependencies:
 ```bash
-docker run -p 8501:8501 cifar10-app
+pip install -r requirements.txt
 ```
-4. Access the web app in your browser:
+(Optional) Train the model:
 ```bash
+python resnet/train.py
+```
+Run the Streamlit web app:
+```bash
+streamlit run app.py
+```
+Access the web app in your browser:
 http://localhost:8501
-```
+
 ## Notes
 The trained model file (.pth) and CIFAR-10 dataset files are excluded from the repository due to GitHub’s file size limitations.
 
