@@ -9,9 +9,26 @@ import os
 import json
 import matplotlib.pyplot as plt
 from model import ResNet
+import argparse
 
-# load best hyperparameter
-with open('best_params.json', 'r') as f:
+current_dir = os.path.dirname(__file__)
+data_dir = os.path.join(current_dir, 'data')
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--mode', type=str, required=True)
+
+args = parser.parse_args()
+
+mode = args.mode
+
+if mode == "best": 
+    # load best hyperparameter
+    params_path = os.path.join(current_dir, '..', 'best_params.json')
+else:
+    params_path = os.path.join(current_dir, '..', 'experiment_params.json')
+
+with open(params_path, 'r') as f:
     best_params = json.load(f)
 
 lr = best_params['lr']
@@ -40,9 +57,10 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
+root = os.path.join(current_dir, '..', 'data')
 # load data
 trainset = torchvision.datasets.CIFAR10(
-    root='./data',
+    root=root,
     train=True,
     download=True,
     transform=transform_train
@@ -56,7 +74,7 @@ trainloader = DataLoader(train_set, batch_size=256, shuffle=True)
 valloader = DataLoader(val_set, batch_size=256, shuffle=True)
 
 testset = torchvision.datasets.CIFAR10(
-    root='./data',
+    root=root,
     train=False,
     download=True,
     transform=transform_test
@@ -65,7 +83,7 @@ testloader = DataLoader(testset, batch_size=256, shuffle=False)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = ResNet().to(device)
-save_path = "./CIFAR_ResNet.pth"
+save_path = os.path.join(current_dir, '..', 'CIFAR_ResNet.pth')
 if os.path.exists(save_path):
     model.load_state_dict(torch.load(save_path))
     print("find exist model")
@@ -77,8 +95,9 @@ scheduler = ReduceLROnPlateau(
     patience=2, 
     verbose=True)
 
-if os.path.exists('best_accuracy.pkl'):
-    with open('best_accuracy.pkl', 'rb') as f:
+accuracy_path = os.path.join(current_dir, '..', 'best_accuracy.pkl')
+if os.path.exists(accuracy_path):
+    with open(accuracy_path, 'rb') as f:
         best_accuracy = pickle.load(f)
     print(f"Loaded previous best_accuracy: {best_accuracy:.2f}%")
 else:
@@ -132,7 +151,8 @@ for epoch in range(epochs):
     history['loss'].append(total_loss / len(trainloader))
     history['val_acc'].append(val_accuracy)
 
-    with open('training_history.pkl', 'wb') as f:
+    history_path = os.path.join(current_dir, '..', 'training_history.pkl')
+    with open(history_path, 'wb') as f:
         pickle.dump(history, f)
 
     if best_accuracy < val_accuracy:
@@ -141,7 +161,7 @@ for epoch in range(epochs):
         print(f"New best model saved with val_accuracy: {best_accuracy:.2f}%")
         epochs_no_improve = 0
 
-        with open('best_accuracy.pkl', 'wb') as f:
+        with open(accuracy_path, 'wb') as f:
             pickle.dump(best_accuracy, f)
     else:
         epochs_no_improve+=1
@@ -159,6 +179,7 @@ plt.ylabel('Loss / Accuracy')
 plt.title('Training Loss and Validation Accuracy')
 plt.legend()
 plt.grid(True)
-plt.savefig('training_curve.png')
+save_fig_path = os.path.join(current_dir, '..', 'training_curve.png')
+plt.savefig(save_fig_path)
 
 print("training finish")
