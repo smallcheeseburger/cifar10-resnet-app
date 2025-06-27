@@ -10,6 +10,7 @@ import json
 import matplotlib.pyplot as plt
 from model import ResNet
 import argparse
+import mlflow
 
 current_dir = os.path.dirname(__file__)
 data_dir = os.path.join(current_dir, 'data')
@@ -17,16 +18,18 @@ data_dir = os.path.join(current_dir, 'data')
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--mode', type=str, required=True)
+parser.add_argument('--params', type=str, required=True)
 
 args = parser.parse_args()
 
 mode = args.mode
+param = args.params
 
 if mode == "best": 
-    # load best hyperparameter
+    # load best parameter
     params_path = os.path.join(current_dir, '..', 'best_params.json')
 else:
-    params_path = os.path.join(current_dir, '..', 'experiment_params.json')
+    params_path = os.path.join(current_dir, '..', 'params', param)
 
 with open(params_path, 'r') as f:
     best_params = json.load(f)
@@ -57,7 +60,7 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
-root = os.path.join(current_dir, '..', 'data')
+root = os.path.join(current_dir, 'data')
 # load data
 trainset = torchvision.datasets.CIFAR10(
     root=root,
@@ -113,7 +116,10 @@ early_stop = False
 criterion = nn.CrossEntropyLoss()
 history = {'loss': [], 'val_acc': []}
 
-
+mlflow.start_run()
+mlflow.log_param('lr', lr)
+mlflow.log_param('batch_size', batch_size)
+mlflow.log_param('mode', mode)
 for epoch in range(epochs):
     model.train()
     total_loss = 0
@@ -148,6 +154,10 @@ for epoch in range(epochs):
     print("val accuracy:",val_accuracy)
     val_accuracy_list.append(val_accuracy)
 
+    mlflow.log_metric('train_accuracy', accuracy, step=epoch)
+    mlflow.log_metric('val_accuracy', val_accuracy, step=epoch)
+    mlflow.log_metric('train_loss', total_loss / len(trainloader), step=epoch)
+
     history['loss'].append(total_loss / len(trainloader))
     history['val_acc'].append(val_accuracy)
 
@@ -181,5 +191,11 @@ plt.legend()
 plt.grid(True)
 save_fig_path = os.path.join(current_dir, '..', 'training_curve.png')
 plt.savefig(save_fig_path)
+
+mlflow.log_artifact(save_fig_path)
+mlflow.log_artifact(save_path)
+mlflow.log_artifact(history_path)
+
+mlflow.end_run()
 
 print("training finish")
