@@ -18,7 +18,7 @@ data_dir = os.path.join(current_dir, 'data')
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--mode', type=str, required=True)
-parser.add_argument('--params', type=str, required=True)
+parser.add_argument('--params', type=str, required=False)
 
 args = parser.parse_args()
 
@@ -29,6 +29,9 @@ if mode == "best":
     # load best parameter
     params_path = os.path.join(current_dir, '..', 'best_params.json')
 else:
+    # params must be provided in experiment mode
+    if param is None:
+        raise ValueError("You must provide a parameter file in experiment mode.")
     params_path = os.path.join(current_dir, '..', 'params', param)
 
 with open(params_path, 'r') as f:

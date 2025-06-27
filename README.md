@@ -13,6 +13,8 @@ The web app allows users to upload CIFAR-10 images and receive instant classific
 - Real-time image upload and prediction
 - Training progress visualization
 - Dockerized deployment for portability
+- MLflow-based experiment tracking
+- Batch training with dynamic hyperparameter input
 
 ## Technologies Used
 
@@ -22,6 +24,7 @@ The web app allows users to upload CIFAR-10 images and receive instant classific
 - Docker
 - Optuna (for hyperparameter tuning)
 - Matplotlib (for training curve plotting)
+- MLflow (for experiment management)
 
 ## Project Structure
 
@@ -31,6 +34,9 @@ The web app allows users to upload CIFAR-10 images and receive instant classific
 │   ├── train.py
 │   └── tuner.py
 ├── app.py               # Streamlit web app
+├── batch_runner.py      # Batch training controller
+├── generate_params.py   # Hyperparameter generator
+├── params/              # Folder for generated parameter files
 ├── get_pic.py           # Image downloader (optional)
 ├── Dockerfile           # Docker configuration
 ├── requirements.txt     # Python dependencies
@@ -73,10 +79,33 @@ Install the dependencies:
 ```bash
 pip install -r requirements.txt
 ```
+
 (Optional) Train the model:
 ```bash
-python resnet/train.py
+# Run single training with best parameters (params file is ignored in this mode)
+python resnet/train.py --mode best
+
+# Run training with specified parameter file
+python resnet/train.py --mode experiment --params params/params_0.json
 ```
+
+Batch Training (Recommended for Experiment Tracking)
+```bash
+# Generate batch parameter files
+python generate_params.py
+
+# Start batch training (automatically runs all JSON files in the params/ folder)
+python resnet/batch_runner.py
+```
+
+Start MLflow UI in CMD:
+```bash
+mlflow ui
+```
+Access the MLflow dashboard in your browser:
+http://localhost:5000
+
+
 Run the Streamlit web app:
 ```bash
 streamlit run app.py
@@ -92,3 +121,5 @@ The CIFAR-10 dataset will be automatically downloaded by torchvision.datasets if
 Please ensure that you have trained the model or provided a pre-trained model file in the correct path before running the app.
 
 The optimized hyperparameters are saved in best_params.json.
+
+MLflow experiment results are stored in the mlruns/ folder by default.
