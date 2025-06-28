@@ -1,4 +1,3 @@
 *.pkl
-*.png
 data/
 mlruns/
