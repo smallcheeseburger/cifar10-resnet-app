@@ -1,3 +1,4 @@
 *.pkl
+*.pem
 data/
 mlruns/
