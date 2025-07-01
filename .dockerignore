@@ -1,0 +1,13 @@
+__pycache__
+*.pyc
+*.pkl
+*.csv
+*.h5
+mlruns
+params
+resnet/data
+best_accuracy.pkl
+training_history.pkl
+.git
+.dockerignore
+Dockerfile
