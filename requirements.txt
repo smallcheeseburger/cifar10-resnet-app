@@ -2,3 +2,4 @@ streamlit
 matplotlib
 optuna
 argparse
+# Install torch and torchvision separately, see README
